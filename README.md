@@ -16,6 +16,35 @@ missions that not do
 7) make the nn
 8) check the netwaork 
 
+------------------------------------------------------------------------------
+
+download python 3.9.12 -- or else 
+
+# Update package lists
+sudo apt update
+
+# Install dependencies
+sudo apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget
+
+# Download Python 3.9.12 source code
+wget https://www.python.org/ftp/python/3.9.12/Python-3.9.12.tgz
+
+# Extract the downloaded archive
+tar -xf Python-3.9.12.tgz
+
+# Navigate to the extracted directory
+cd Python-3.9.12
+
+# Configure the installation
+./configure --enable-optimizations
+
+# Compile and install Python
+make #this proccese take some time - 
+
+sudo make altinstall
+
+# Update alternatives to set Python 3.9 as default
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.9 12
 
 --------------------------------------------------------------------------------
 download mavlink 
