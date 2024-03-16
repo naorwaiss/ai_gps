@@ -64,9 +64,24 @@ connect to the tinker board to the MavLink:
 dont tink that i need to move do "chmod"
 sudo mavproxy.py --master=/dev/ttyS0
 
-
+--------------------------------------------------------------------------------
+# type of model i need to test 
+1) model_1 - when the camera gave only x,y data - and the motor do the ai 
+2) model_2 - when the camera do a - ai atself - model 3
+3) model_3 - two layer of ai o ne for the camera and one for the motor 
 ---------------------------------------------------------------------------------
 
+# run time -
+need all the sensor gave the data at the smae time - so if the time not work together need to do some interpulation 
+  
+1) GPS - all dim 
+2) imu - euiler andle 
+3) compass
+4) camera fps 
+5) camera output (for model 1)
+6) baro altitude
+7) motor telem
 
+    
 
 
