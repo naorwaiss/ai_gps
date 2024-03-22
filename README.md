@@ -82,6 +82,15 @@ need all the sensor gave the data at the smae time - so if the time not work tog
 6) baro altitude
 7) motor telem
 
-    
+------------------------------------------------------------------------------
+camera code 
+at the first step lets do openc cv simple code with tracing algoritem 
+
+https://www.youtube.com/watch?app=desktop&v=GgGro5IV-cs  - explanation about the code i need 
+
+i need to make the run time of the camera little slower becuse the tinker board is little lazy
+
+
+
 
 
