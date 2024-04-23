@@ -91,6 +91,10 @@ https://www.youtube.com/watch?app=desktop&v=GgGro5IV-cs  - explanation about the
 i need to make the run time of the camera little slower becuse the tinker board is little lazy
 
 
+----------------------------------------------------------------------------------------------
+main mavros node 
+
+ros2 run mavros mavros_node --ros-args -p fcu_url:=/dev/ttyAMA0 -p gcs_url:=udp://@127.0.0.1
 
 
 
