@@ -7,14 +7,35 @@ at this project i use asus tinker board with dorne
 at the drone i use ardupilot - for the telemetry esc 
 --------------------------------------------------------------------------------
 missions that not do
-1) build the drone X2 with 2 type of engine 
-2) make the ESC telemtry
 3) learn pytorch - control it 
 4) start make the image code with the euiler or quarterion angel 
 5) learn how to get the ESC data to pymavlink or mavsdk at real time
 6) make code that shave all the data to csv file 
 7) make the nn
+
 8) check the netwaork 
+
+
+
+the data i need to take from the drone - need to order it to with gps and not with gps - for the learn
+
+
+data need to take from the drone:
+telem from the engine - voltage/rpm/temp
+voltage of the drone 
+compass heading 
+heading from the GPS - GLOBAL_POSITION_INT (pymavlink)
+Gps - location GLOBAL_POSITION_INT /GPS_GLOBAL_ORIGIN /GLOBAL_POSITION_INT_COV-after some fileter(mabey batter)//LOCAL_POSITION_NED_COV(have here v and x at local ned)
+imu - SCALED_IMU //RAW_IMU
+ATTITUDE // ALTITUDE ( #141 )
+
+
+
+
+
+
+
+need to save to scv after take the daata
 
 ------------------------------------------------------------------------------
 
