@@ -47,16 +47,20 @@ class AI_drone_naor:
         )
 
     def receive_esc_telemetry(self):
+        """
+        Receive esc telemetry - the esc telemtry run on 10 Hz
+        :return:
+        """
         # Wait for the next message
-        msg = self.master.recv_match(type='ESC_TELEMETRY_1_TO_4', blocking=True, timeout=1.0)
-        if msg:
+        msg_telemetry = self.master.recv_match(type='ESC_TELEMETRY_1_TO_4', blocking=True, timeout=1.0)
+        if msg_telemetry:
             # ESC telemetry data received, return it
             return {
-                "Temperature": msg.temperature,
-                "Voltage": msg.voltage,
-                "Current": msg.current,
-                "Total current": msg.totalcurrent,
-                "RPM": msg.rpm
+                "Temperature": msg_telemetry.temperature,
+                "Voltage": msg_telemetry.voltage,
+                "Current": msg_telemetry.current,
+                "Total current": msg_telemetry.totalcurrent,
+                "RPM": msg_telemetry.rpm
             }
         else:
             return None
@@ -65,7 +69,20 @@ class AI_drone_naor:
 
 
     def compass_telemetry(self):
+        """
+        Compass telemetry run on () Hz
+        :return:
+        """
         msg_compass = self.master.recv_match(type='COMPASS', blocking=True)
+        if msg_compass is not None:
+            # Extract compass data
+            compass_id = msg_compass.compid
+            current_heading = msg_compass.heading
+            return {
+                "Heading": current_heading
+            }
+        else:
+            return None
 
 
     def run(self):
