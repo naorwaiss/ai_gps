@@ -74,13 +74,21 @@ sudo mavproxy.py --master=/dev/ttyS0
 # run time -
 need all the sensor gave the data at the smae time - so if the time not work together need to do some interpulation 
   
-1) GPS - all dim 
-2) imu - euiler andle 
-3) compass
-4) camera fps 
-5) camera output (for model 1)
-6) baro altitude
-7) motor telem
+1) GPS - all dim ---
+   for holybro micro m10:
+Up to 25 Hz (single GNSS),
+Up to 10 Hz (4 concurrent GNSS)
+  for gep-m10:
+Up to 10 Hz 
+
+3) imu - euiler andle 
+4) compass
+  -IST8310 Compass - 200Hz
+    
+6) camera fps 
+7) camera output (for model 1)
+8) baro altitude
+9) motor telem
 
 ------------------------------------------------------------------------------
 camera code 
