@@ -6,20 +6,24 @@ this project come to gave solution to the GPS with AI
 at this project i use asus tinker board with dorne 
 at the drone i use ardupilot - for the telemetry esc 
 --------------------------------------------------------------------------------
-missions that not do
+missions that not do - big
+2)connect compass 
 3) learn pytorch - control it 
 4) start make the image code with the euiler or quarterion angel 
 5) learn how to get the ESC data to pymavlink or mavsdk at real time
 6) make code that shave all the data to csv file 
 7) make the nn
 
-8) check the netwaork 
+
+
 
 
 
 the data i need to take from the drone - need to order it to with gps and not with gps - for the learn
 
 
+
+#need to fill this line here 
 data need to take from the drone:
 telem from the engine - voltage/rpm/temp
 voltage of the drone 
@@ -33,9 +37,13 @@ ATTITUDE // ALTITUDE ( #141 )
 
 
 
+-----------------------------------------------------------------------------
+mission for the close time 
+1) change from scv to somthing that can andel more data
+2) problem with the time
+3) run time - ask if i can get the actual time
 
 
-need to save to scv after take the daata
 
 ------------------------------------------------------------------------------
 
@@ -104,13 +112,16 @@ Up to 10 Hz
 
 3) imu - euiler andle 
 4) compass
-  -IST8310 Compass - 200Hz
+  -IST8310 Compass - 200Hz - i ask only for 10hz....
     
 6) camera fps 
 7) camera output (for model 1)
 8) baro altitude
 9) motor telem
 
+
+
+/// some thinking - maby make skript for every instrument to check the run time of him - and take the main 
 ------------------------------------------------------------------------------
 camera code 
 at the first step lets do openc cv simple code with tracing algoritem 
@@ -124,6 +135,8 @@ i need to make the run time of the camera little slower becuse the tinker board 
 main mavros node 
 
 ros2 run mavros mavros_node --ros-args -p fcu_url:=/dev/ttyAMA0 -p gcs_url:=udp://@127.0.0.1
+
+i can call to the ros2 topic list and take the topic of the esc - maby its batter....
 
 
 
