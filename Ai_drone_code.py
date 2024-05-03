@@ -6,7 +6,7 @@ import datetime
 
 
 class AI_drone_naor:
-    def __init__(self, connection_string='/dev/ttyAMA0', baudrate=57600, csv_file_directory='/home/drone/flight_data/'):
+    def __init__(self, connection_string='/dev/ttyS0', baudrate=57600, csv_file_directory='/home/linaro/flight_data/'):
         self.connection_string = connection_string
         self.baudrate = baudrate
         self.master = mavutil.mavlink_connection(self.connection_string, baud=self.baudrate)
@@ -161,7 +161,7 @@ class AI_drone_naor:
             csv_writer.writerow(
                 ["ET1", "ET2", "ET3", "ET4", "EV1", "EV2", "EV3", "EV4", "RPM1", "RPM2", "RPM3", "RPM4",
                  "Xacc", "Yacc", "Zacc", "gyroX", "gyroY", "gyroZ", "magX", "magY", "magZ",
-                 "dt"])  # Add "time" to the header
+                 "dt_hz"])  # Add "time" to the header
 
             while True:
                 # Initialize a new buffer for each iteration
@@ -186,7 +186,7 @@ class AI_drone_naor:
                             imu_reading["Xacc"], imu_reading["Yacc"], imu_reading["Zacc"],
                             imu_reading["Xgyro"], imu_reading["Ygyro"], imu_reading["Zgyro"],
                             imu_reading["Xmag"], imu_reading["Ymag"], imu_reading["Zmag"],
-                            time.time() - start_time  # Add delta_t (time since start) to the row
+                            1/(time.time() - start_time)  # Add delta_t (time since start) to the row
                         ])
                         print(f"you are in the {i} iteration")
 
@@ -196,5 +196,5 @@ class AI_drone_naor:
 
 
 if __name__ == "__main__":
-    app = AI_drone_naor(csv_file_path='/home/drone/flight_data/flight_data.csv')
+    app = AI_drone_naor()
     app.run()
