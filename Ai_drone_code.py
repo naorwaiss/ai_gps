@@ -1,28 +1,28 @@
 import time
 from pymavlink import mavutil
 import csv
-import numpy as np
-
+import os
+import datetime
 
 
 class AI_drone_naor:
-    # 'udp:127.0.0.1:14550' - sitl string
-    #'/dev/ttyAMA0' -real string -- baudrate - 57600
-    def __init__(self, connection_string='/dev/ttyAMA0', baudrate=57600, csv_file_path='/home/drone/flight_data/flight_data.csv'):
+    def __init__(self, connection_string='/dev/ttyAMA0', baudrate=57600, csv_file_directory='/home/drone/flight_data/'):
         self.connection_string = connection_string
         self.baudrate = baudrate
         self.master = mavutil.mavlink_connection(self.connection_string, baud=self.baudrate)
         self.satellite_count = None
         self.hdop = None
-        self.csv_file_path = csv_file_path
+        self.csv_file_directory = csv_file_directory
 
-
-
-
-        self.buffer_size = 20 #- for example
+        self.buffer_size = 30  # for example
         self.data_matrix = None
         self.received_data = []
         self.delta_t = 0
+
+        # Generate CSV filename based on current date and time
+        current_datetime = datetime.datetime.now()
+        filename = f"flight_data_{current_datetime.strftime('%d-%m-%Y_%H-%M-%S')}.csv"
+        self.csv_file_path = os.path.join(self.csv_file_directory, filename)
 
 
 
@@ -43,8 +43,6 @@ class AI_drone_naor:
                     print(f"Satellite count: {self.satellite_count}, HDOP: {self.hdop}")
                     time.sleep(3)
 
-
-
     def request_esc_telemetry(self):
         # Send a command to request ESC telemetry data
         self.master.mav.command_long_send(
@@ -62,10 +60,9 @@ class AI_drone_naor:
             0  # Param 7 (0 for request)
         )
 
-
     def receive_esc_telemetry(self):
         """
-        Receive esc telemetry - the esc telemtry run on 10 Hz
+        Receive esc telemetry - the esc telemetry run on 10 Hz
         :return:
         """
         # Wait for the next message
@@ -79,24 +76,23 @@ class AI_drone_naor:
             }
         else:
             return None
+
     def request_compass_telemetry(self):
         # Send a command to request compass telemetry data
         self.master.mav.command_long_send(
             self.master.target_system,  # Target system ID
             self.master.target_component,  # Target component ID
             mavutil.mavlink.MAV_CMD_REQUEST_MESSAGE,  # Command to request message
-                0,  # Confirmation
-                mavutil.mavlink.MAVLINK_MSG_ID_COMPASS,  # Message ID for compass telemetry data
-                0,  # Param 1 (0 for request)
-                0,  # Param 2 (0 for request)
-                0,  # Param 3 (0 for request)
-                0,  # Param 4 (0 for request)
-                0,  # Param 5 (0 for request)
-                0,  # Param 6 (0 for request)
-                0  # Param 7 (0 for request)
-            )
-
-
+            0,  # Confirmation
+            mavutil.mavlink.MAVLINK_MSG_ID_COMPASS,  # Message ID for compass telemetry data
+            0,  # Param 1 (0 for request)
+            0,  # Param 2 (0 for request)
+            0,  # Param 3 (0 for request)
+            0,  # Param 4 (0 for request)
+            0,  # Param 5 (0 for request)
+            0,  # Param 6 (0 for request)
+            0  # Param 7 (0 for request)
+        )
 
     def receive_compass_telemetry(self):
         """
@@ -116,7 +112,6 @@ class AI_drone_naor:
         else:
             return None
 
-
     def request_imu_reading(self):
         """
         GPS function - disable
@@ -132,7 +127,6 @@ class AI_drone_naor:
             10,  # Request at 10 Hz
             1  # Start/stop stream (1=start, 0=stop)
         )
-
 
     def receive_raw_imu_data(self):
         """
@@ -156,75 +150,51 @@ class AI_drone_naor:
         else:
             return None
 
-
-
-
     def recive_gps_heading(self):
-
-
         return
-
-
-
-
-
-
-
-
-
 
     def run(self):
         self.wait_heartbeat()
 
         with open(self.csv_file_path, mode='w', newline='') as file:
             csv_writer = csv.writer(file)
-            csv_writer.writerow(["Temperature", "Voltage", "RPM", "Heading"])  # Add "Heading" to the header
+            csv_writer.writerow(
+                ["ET1", "ET2", "ET3", "ET4", "EV1", "EV2", "EV3", "EV4", "RPM1", "RPM2", "RPM3", "RPM4",
+                 "Xacc", "Yacc", "Zacc", "gyroX", "gyroY", "gyroZ", "magX", "magY", "magZ",
+                 "dt"])  # Add "time" to the header
 
             while True:
                 # Initialize a new buffer for each iteration
-                start_time = time.time()
                 data_buffer = []
 
                 # Collect telemetry data and fill the buffer
-                for _ in range(self.buffer_size):
+                start_time = time.time()  # Record start time for the iteration
+                for i in range(self.buffer_size):
                     self.request_esc_telemetry()
-                    # self.request_compass_telemetry()  # Request compass telemetry data
                     self.request_imu_reading()
                     esc_telemetry_data = self.receive_esc_telemetry()
-                    # compass_telemetry_data = self.receive_compass_telemetry()  # Receive compass telemetry data
-                    imu_reading = self.receive_raw_imu_data()  # Corrected method name
+                    imu_reading = self.receive_raw_imu_data()
 
                     if esc_telemetry_data is not None and imu_reading is not None:
                         data_buffer.append([
-                            "esc:", "Temp",
                             esc_telemetry_data["Temperature"][0], esc_telemetry_data["Temperature"][1],
                             esc_telemetry_data["Temperature"][2], esc_telemetry_data["Temperature"][3],
-                            "Volt",
                             esc_telemetry_data["Voltage"][0], esc_telemetry_data["Voltage"][1],
                             esc_telemetry_data["Voltage"][2], esc_telemetry_data["Voltage"][3],
-                            "rpm", #need to order like the drone motor at ardupilot
                             esc_telemetry_data["RPM"][0], esc_telemetry_data["RPM"][1],
                             esc_telemetry_data["RPM"][2], esc_telemetry_data["RPM"][3],
-                            "imu acc" ,
                             imu_reading["Xacc"], imu_reading["Yacc"], imu_reading["Zacc"],
-                            "imu gyro",
                             imu_reading["Xgyro"], imu_reading["Ygyro"], imu_reading["Zgyro"],
-                            "imu mag",
                             imu_reading["Xmag"], imu_reading["Ymag"], imu_reading["Zmag"],
-                            # compass_telemetry_data["Heading"]
-                            "d_t",
-                            self.delta_t
+                            time.time() - start_time  # Add delta_t (time since start) to the row
                         ])
-                        self.delta_t = 1/(time.time() - start_time)
-                        print(f"We are at iteration {_}")
-
+                        print(f"you are in the {i} iteration")
 
                 # Write the buffer to the CSV file
-                print(f"Data buffer size: {len(data_buffer)}")
                 for row in data_buffer:
                     csv_writer.writerow(row)
 
 
 if __name__ == "__main__":
-    app = AI_drone_naor(csv_file_path='/home/drone/flight_data/flight_data.csv')  # Create an instance of AI_drone_naor
-    app.run()  # Call the run method of AI_drone_naor
+    app = AI_drone_naor(csv_file_path='/home/drone/flight_data/flight_data.csv')
+    app.run()
