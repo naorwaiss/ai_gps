@@ -2,9 +2,8 @@ import os
 import csv
 import torch
 
-
 """
-this script make all the flight data as one tensor and save it
+This script takes a csv file and save it as a tensor file
 """
 
 data_directory = '/home/naor/Desktop/naor/ai_gps/data/'
@@ -36,6 +35,8 @@ for filename in os.listdir(data_directory):
 # Concatenate all tensors in all_data along the first dimension to create a single tensor
 full_data = torch.cat(all_data, dim=0)
 
+# Save the tensor to a file in the data directory
+torch.save(full_data, os.path.join(data_directory, 'full_data.pt'))
+
 # Print the shape of the full tensor
-print(full_data)
 print("Shape of full tensor data:", full_data.shape)
