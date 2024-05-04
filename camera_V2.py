@@ -1,82 +1,82 @@
 import cv2
 import numpy as np
+import queue
+import threading
 
+class OpticalFlowTracker:
+    def __init__(self, video_source=0):
+        self.cap = cv2.VideoCapture(video_source)
+        self.prev_frame = None
+        self.prev_pts = None
+        self.prev_x = 0
+        self.prev_y = 0
+        self.output_queue = queue.Queue()
 
-"""
-This script takes a video and convert it to vextor of x,y at the phase """
-# Initialize video capture
-cap = cv2.VideoCapture(0)
+        # Parameters for Lucas-Kanade optical flow
+        self.lk_params = dict(winSize=(15, 15),
+                              maxLevel=2,
+                              criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
-# Initialize variables for previous frame
-prev_frame = None
-prev_pts = None
-prev_x = 0
-prev_y = 0
+        # Parameters for smoothing
+        self.alpha = 0.2  # Smoothing factor
 
-# Parameters for Lucas-Kanade optical flow
-lk_params = dict(winSize=(15, 15),
-                 maxLevel=2,
-                 criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+        # Noise canceling threshold
+        self.movement_threshold = 5.0
 
-# Parameters for smoothing
-alpha = 0.2  # Smoothing factor
+    def calculate_optical_flow(self, frame):
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray_blur = cv2.GaussianBlur(gray, (5, 5), 0)
 
-# Noise canceling threshold
-movement_threshold = 5.0
+        if self.prev_frame is not None and self.prev_pts is not None:
+            next_pts, status, _ = cv2.calcOpticalFlowPyrLK(self.prev_frame, gray_blur, self.prev_pts, None, **self.lk_params)
+            good_new = next_pts[status == 1]
+            good_old = self.prev_pts[status == 1]
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
+            if len(good_new) > 0 and len(good_old) > 0:
+                movement = np.mean(good_new - good_old, axis=0)
+                x_movement = movement[0]
+                y_movement = movement[1]
 
-    # Convert frame to grayscale
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                if self.prev_x != 0 and self.prev_y != 0:
+                    x_movement = self.alpha * x_movement + (1 - self.alpha) * self.prev_x
+                    y_movement = self.alpha * y_movement + (1 - self.alpha) * self.prev_y
 
-    # Apply Gaussian blur to reduce noise
-    gray_blur = cv2.GaussianBlur(gray, (5, 5), 0)
+                if abs(x_movement) < self.movement_threshold:
+                    x_movement = 0
+                if abs(y_movement) < self.movement_threshold:
+                    y_movement = 0
 
-    # If this is not the first frame, calculate the optical flow
-    if prev_frame is not None and prev_pts is not None:
-        # Calculate optical flow using Lucas-Kanade method
-        next_pts, status, _ = cv2.calcOpticalFlowPyrLK(prev_frame, gray_blur, prev_pts, None, **lk_params)
+                self.prev_x = x_movement
+                self.prev_y = y_movement
 
-        # Select good points
-        good_new = next_pts[status == 1]
-        good_old = prev_pts[status == 1]
+                return x_movement, y_movement
 
-        if len(good_new) > 0 and len(good_old) > 0:
-            # Calculate the average movement
-            movement = np.mean(good_new - good_old, axis=0)
+        return 0, 0
 
-            # Extract x and y components of the average movement
-            x_movement = movement[0]
-            y_movement = movement[1]
+    def run(self):
+        while True:
+            ret, frame = self.cap.read()
+            if not ret:
+                break
 
-            # Apply smoothing
-            if prev_x != 0 and prev_y != 0:
-                x_movement = alpha * x_movement + (1 - alpha) * prev_x
-                y_movement = alpha * y_movement + (1 - alpha) * prev_y
+            movement = self.calculate_optical_flow(frame)
+            self.output_queue.put(movement)
 
-            # Apply noise canceling
-            if abs(x_movement) < movement_threshold:
-                x_movement = 0
-            if abs(y_movement) < movement_threshold:
-                y_movement = 0
+            self.prev_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            self.prev_pts = cv2.goodFeaturesToTrack(self.prev_frame, maxCorners=100, qualityLevel=0.01, minDistance=10)
 
-            # Update previous x and y positions
-            prev_x = x_movement
-            prev_y = y_movement
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
-            # Print the movement
-            print(x_movement, y_movement)
-    # Store the current frame and points for the next iteration
-    prev_frame = gray_blur.copy()
-    prev_pts = cv2.goodFeaturesToTrack(gray_blur, maxCorners=100, qualityLevel=0.01, minDistance=10)
+        self.cap.release()
+        cv2.destroyAllWindows()
 
-    # Break the loop if 'q' is pressed
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+def process_output(output_queue):
+    while True:
+        movement = output_queue.get()
 
-# Release the video capture
-cap.release()
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    tracker = OpticalFlowTracker()
+    output_thread = threading.Thread(target=process_output, args=(tracker.output_queue,))
+    output_thread.start()
+    tracker.run()

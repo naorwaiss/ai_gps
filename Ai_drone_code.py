@@ -3,10 +3,15 @@ from pymavlink import mavutil
 import csv
 import os
 import datetime
+import queue
+
+
 
 
 class AI_drone_naor:
-    def __init__(self, connection_string='/dev/ttyS0', baudrate=57600, csv_file_directory='/home/linaro/flight_data/'):
+    def __init__(self, connection_string='/dev/ttyS0', baudrate=57600, csv_file_directory='/home/linaro/flight_data/',
+                 output_queue=None):
+        self.output_queue = output_queue
         self.connection_string = connection_string
         self.baudrate = baudrate
         self.master = mavutil.mavlink_connection(self.connection_string, baud=self.baudrate)
@@ -161,11 +166,12 @@ class AI_drone_naor:
             csv_writer.writerow(
                 ["ET1", "ET2", "ET3", "ET4", "EV1", "EV2", "EV3", "EV4", "RPM1", "RPM2", "RPM3", "RPM4",
                  "Xacc", "Yacc", "Zacc", "gyroX", "gyroY", "gyroZ", "magX", "magY", "magZ",
-                 "dt_hz"])  # Add "time" to the header
+                 "cmaera_x","camera_y","dt_hz"])  # Add "time" to the header
 
             while True:
                 # Initialize a new buffer for each iteration
                 data_buffer = []
+                cam_movment = self.output_queue.get()
 
                 # Collect telemetry data and fill the buffer
                 start_time = time.time()  # Record start time for the iteration
@@ -186,6 +192,7 @@ class AI_drone_naor:
                             imu_reading["Xacc"], imu_reading["Yacc"], imu_reading["Zacc"],
                             imu_reading["Xgyro"], imu_reading["Ygyro"], imu_reading["Zgyro"],
                             imu_reading["Xmag"], imu_reading["Ymag"], imu_reading["Zmag"],
+                            cam_movment[0],cam_movment[1],
                             1/(time.time() - start_time)  # Add delta_t (time since start) to the row
                         ])
                         print(f"you are in the {i} iteration")
@@ -196,5 +203,6 @@ class AI_drone_naor:
 
 
 if __name__ == "__main__":
-    app = AI_drone_naor()
+    output_queue = queue.Queue()  # Initialize the output queue
+    app = AI_drone_naor(output_queue=output_queue)
     app.run()
